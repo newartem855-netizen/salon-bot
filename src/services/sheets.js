@@ -18,7 +18,7 @@ async function appendRow(data) {
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
-    range: 'Sheet1!A:G',
+    range: 'Лист1!A:G',
     valueInputOption: 'RAW',
     resource: {
       values: [[
