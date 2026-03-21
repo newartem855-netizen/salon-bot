@@ -1,6 +1,7 @@
 const booking = require('../services/booking');
 const kb      = require('../keyboards');
 const sheets  = require('../services/sheets');
+const ai      = require('../services/ai');
 
 function register(bot) {
 
@@ -101,6 +102,16 @@ function register(bot) {
         kb.confirmKeyboard()
       );
     }
+
+    // AI-ассистент — отвечает на все остальные вопросы
+    try {
+      await ctx.sendChatAction('typing');
+      const answer = await ai.askAI(ctx.message.text);
+      await ctx.reply(answer);
+    } catch (e) {
+      console.error('Ошибка AI:', e.message);
+      await ctx.reply('⚠️ Не могу ответить прямо сейчас. Напишите /start чтобы записаться.');
+    }
   });
 
   // ─── Подтверждение ───────────────────────────────────────
@@ -145,7 +156,7 @@ function register(bot) {
 
     await notifyAdmin(bot, ctx.session);
 
-   // Записываем в Google Sheets
+    // Записываем в Google Sheets
     try {
       const allServices = await booking.getServices();
       const allMasters  = await booking.getMasters();
@@ -163,8 +174,10 @@ function register(bot) {
     } catch (e) {
       console.error('Ошибка Google Sheets:', e.message);
     }
+
     ctx.session = {};
   });
+
   // ─── Отмена ──────────────────────────────────────────────
   bot.action('confirm:no', async ctx => {
     ctx.session = {};
