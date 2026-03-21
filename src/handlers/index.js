@@ -106,7 +106,13 @@ function register(bot) {
     // AI-ассистент — отвечает на все остальные вопросы
     try {
       await ctx.sendChatAction('typing');
-      const answer = await ai.askAI(ctx.message.text);
+      if (!ctx.session.aiHistory) ctx.session.aiHistory = [];
+      const answer = await ai.askAI(ctx.message.text, ctx.session.aiHistory);
+      ctx.session.aiHistory.push({ role: 'user', content: ctx.message.text });
+      ctx.session.aiHistory.push({ role: 'assistant', content: answer });
+      if (ctx.session.aiHistory.length > 20) {
+        ctx.session.aiHistory = ctx.session.aiHistory.slice(-20);
+      }
       await ctx.reply(answer);
     } catch (e) {
       console.error('Ошибка AI:', e.message);
