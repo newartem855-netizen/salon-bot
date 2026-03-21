@@ -1,5 +1,6 @@
 const booking = require('../services/booking');
 const kb      = require('../keyboards');
+const sheets  = require('../services/sheets');
 
 function register(bot) {
 
@@ -8,10 +9,8 @@ function register(bot) {
     console.log('Telegram ID:', ctx.from.id);
     ctx.session = {};
 
-    // Автообновление расписания
     await booking.ensureSchedule();
 
-    // Проверяем знаем ли клиента
     const client = await booking.getClient(ctx.from.id);
     if (client) {
       ctx.session.clientName  = client.first_name;
@@ -74,7 +73,6 @@ function register(bot) {
   bot.action(/^slot:(\d{2}:\d{2})$/, async ctx => {
     ctx.session.time = ctx.match[1];
 
-    // Знаем клиента — пропускаем имя/телефон
     if (ctx.session.clientName && ctx.session.clientPhone) {
       ctx.session.step = 'confirming';
       return ctx.editMessageText(
@@ -146,6 +144,19 @@ function register(bot) {
     );
 
     await notifyAdmin(bot, ctx.session);
+
+    // Записываем в Google Sheets
+    try {
+      await sheets.appendRow({
+        clientName:  ctx.session.clientName,
+        clientPhone: ctx.session.clientPhone,
+        date:        ctx.session.date,
+        time:        ctx.session.time,
+      });
+    } catch (e) {
+      console.error('Ошибка Google Sheets:', e.message);
+    }
+
     ctx.session = {};
   });
 
