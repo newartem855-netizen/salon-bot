@@ -145,21 +145,26 @@ function register(bot) {
 
     await notifyAdmin(bot, ctx.session);
 
-    // Записываем в Google Sheets
+   // Записываем в Google Sheets
     try {
+      const allServices = await booking.getServices();
+      const allMasters  = await booking.getMasters();
+      const service = allServices.find(s => s.id === ctx.session.serviceId);
+      const master  = allMasters.find(m => m.id === ctx.session.masterId);
+
       await sheets.appendRow({
         clientName:  ctx.session.clientName,
         clientPhone: ctx.session.clientPhone,
         date:        ctx.session.date,
         time:        ctx.session.time,
+        serviceName: service ? service.name : '',
+        masterName:  master  ? master.name  : '',
       });
     } catch (e) {
       console.error('Ошибка Google Sheets:', e.message);
     }
-
     ctx.session = {};
   });
-
   // ─── Отмена ──────────────────────────────────────────────
   bot.action('confirm:no', async ctx => {
     ctx.session = {};
