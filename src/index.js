@@ -7,6 +7,10 @@ process.on('unhandledRejection', err => {
   console.error('UNHANDLED REJECTION:', err);
   process.exit(1);
 });
+
+console.log('=== START ===');
+console.log('BOT_TOKEN:', process.env.BOT_TOKEN ? 'OK' : 'MISSING');
+
 require('dotenv').config();
 const { Telegraf, session } = require('telegraf');
 const handlers = require('./handlers');
